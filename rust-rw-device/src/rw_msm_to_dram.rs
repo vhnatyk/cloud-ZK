@@ -2,7 +2,7 @@ use std::{fs::OpenOptions, os::unix::prelude::{OpenOptionsExt, FileExt}, time::D
 use std::time::{Instant};
 
 use ark_bn254::{G1Affine as GAffine, Fq, Fr};
-use ark_ff::{Field, BigInteger256, Fp256};
+use ark_ff::{Field, BigInteger256, Fp256, Zero};
 use num_bigint::BigUint;
 
 const CHUNK_SIZE: usize = 1024;
@@ -51,9 +51,9 @@ pub fn u32_vec_to_u8_vec(u32_vec: &Vec<u32>) -> Vec<u8> {
 /// Reset to the device
 ///
 pub fn init(){
-    println!("Open Device Channels...");
+    // println!("Open Device Channels...");
     let axi = open_axi_channel();
-    println!("Reset Device...");
+    // println!("Reset Device...");
     set_dfx_decoupling(&axi, true);
     set_dfx_decoupling(&axi, false);
 }
@@ -61,10 +61,10 @@ pub fn init(){
 /// Returns the label of the current task
 ///
 pub fn get_msm_label() -> u8{
-    println!("Open Device Channels...");
+    // println!("Open Device Channels...");
     let axi = open_axi_channel();
     let task_label = get_ingo_msm_task_label(&axi)[0];
-    println!("Task label: {}", task_label);
+    // println!("Task label: {}", task_label);
     return task_label; 
 }
 
@@ -204,39 +204,6 @@ pub fn check_if_points_are_on_curv(point: &Vec<u8>) -> bool {
     return point.is_on_curve();
 }
 
-pub fn get_formatted_unified_bytes(points_bytes: Vec<u8>, scalars_bytes: Vec<u8>,size: usize) -> (usize, Vec<u8>, Vec<u8>) {
-    let mut n_points_bytes: Vec<u8> = Vec::new();
-    let mut n_scalars_bytes: Vec<u8> = Vec::new();
-    let mut n_size = 0;
-
-    for i in 0..points_bytes.len()/64{
-        let mut bytes_array = points_bytes[i * 64.. i * 64 + 64].to_vec();
-        
-        assert_eq!(bytes_array.len(), 64);
-        bytes_array.extend(std::iter::repeat(0).take(32));
-        assert_eq!(bytes_array.len(), 96);
-
-        let is_on_curv = check_if_points_are_on_curv(&bytes_array);
-
-        if (is_on_curv) {
-            n_size += 1;
-            n_points_bytes.extend(bytes_array);
-            n_scalars_bytes.extend(&scalars_bytes[i * 32.. i * 32 + 32]);
-        } else {
-            println!("point has been removed");
-            println!("point: {:02X?}", &bytes_array);
-
-        }
-
-        // TODO: make this works
-        //#[cfg(feature = "bn254")]
-        //if (i as i32 - 1) % 2 == 0 {
-        //    points_bytes.extend(std::iter::repeat(0).take(32));
-        //}
-    }
-
-    (n_size, n_points_bytes, n_scalars_bytes)
-}
 
 /// Returns MSM result of elements in bls12_377 in projective form
 ///
@@ -251,41 +218,41 @@ pub fn get_formatted_unified_bytes(points_bytes: Vec<u8>, scalars_bytes: Vec<u8>
 /// * Duration of the computation. 
 /// * The label of the result that was read. 
 pub fn msm_core(points_bytes: Vec<u8>, scalars_bytes: Vec<u8>,size: usize) -> (Vec<u8>, Vec<u8>, Vec<u8>,Duration,u8) {
-    let (n_size, n_points_bytes, n_scalars_bytes) = get_formatted_unified_bytes(points_bytes, scalars_bytes, size);
-    let nof_elements: usize = n_size;
+    let nof_elements: usize = size;
     let chunks: usize = div_up(nof_elements,CHUNK_SIZE);
 
-    println!("Open Device Channels...");
+    // println!("points: {:?}", n_scalars_bytes);
+    // println!("Open Device Channels...");
     let axi = open_axi_channel();
     let h2c = open_dma_channel();
-    println!("Setting DMA Source...");
+    // println!("Setting DMA Source...");
     set_ingo_msm_coeffs_source(&axi,0);
     set_ingo_msm_bases_source(&axi,0);
-    println!("Setting NOF Elements  = {}...", nof_elements);
+    // println!("Setting NOF Elements  = {}...", nof_elements);
     set_ingo_msm_nof_elements(&axi, nof_elements);
-    println!("Pushing Task Signal...");
+    // println!("Pushing Task Signal...");
     set_ingo_msm_push_task(&axi);
-    println!("Task label: {}", get_ingo_msm_task_label(&axi)[0]);
-    println!("Writing Task...");
+    // println!("Task label: {}", get_ingo_msm_task_label(&axi)[0]);
+    // println!("Writing Task...");
     let start = Instant::now();
-    write_msm_to_fifo(n_points_bytes, n_scalars_bytes, h2c,chunks);
-    println!("Waiting for result...");
+    write_msm_to_fifo(points_bytes, scalars_bytes, h2c,chunks);
+    // println!("Waiting for result...");
     wait_for_valid_result(&axi);
     let duration = start.elapsed();
-    println!("Received result...");
-    println!("Time elapsed is: {:?} for size: {}", duration, nof_elements);
+    // println!("Received result...");
+    // println!("Time elapsed is: {:?} for size: {}", duration, nof_elements);
     let result = read_result(&axi);
     let result_label = get_ingo_msm_result_label(&axi)[0]; 
-    println!("Result label: {}", result_label);
+    // println!("Result label: {}", result_label);
     let z_chunk = &result[0..BYTE_SIZE_POINT_COORD];
     let y_chunk = &result[BYTE_SIZE_POINT_COORD..2 * BYTE_SIZE_POINT_COORD];
     let x_chunk = &result[2 * BYTE_SIZE_POINT_COORD..3 * BYTE_SIZE_POINT_COORD];
-    println!("X bytes {:02X?}", x_chunk);
-    println!("Y bytes {:02X?}", y_chunk);
-    println!("Z bytes {:02X?}", z_chunk);
-    println!("Pop result...");
+    // println!("X bytes {:02X?}", x_chunk);
+    // println!("Y bytes {:02X?}", y_chunk);
+    // println!("Z bytes {:02X?}", z_chunk);
+    // println!("Pop result...");
     set_ingo_msm_pop_task(axi);
-    is_projective_point_curve(z_chunk.to_vec(), y_chunk.to_vec(), x_chunk.to_vec());
+    //is_projective_point_curve(z_chunk.to_vec(), y_chunk.to_vec(), x_chunk.to_vec());
 
     (z_chunk.to_vec(), y_chunk.to_vec(), x_chunk.to_vec(),duration, result_label)
 }
@@ -295,11 +262,10 @@ fn is_projective_point_curve(z_chunk: Vec<u8>, y_chunk: Vec<u8>, x_chunk: Vec<u8
     let y = Fq::from(BigUint::from_bytes_le(&y_chunk));
     let z = Fq::from(BigUint::from_bytes_le(&z_chunk));
 
-    
     let inverse_z = Fq::inverse(&z).unwrap();
 
-    let n_x = Fq::mul(x, inverse_z);;
-    let n_y = Fq::mul(y, inverse_z);;
+    let n_x = Fq::mul(x, inverse_z);
+    let n_y = Fq::mul(y, inverse_z);
 
     let point = GAffine::new(n_x, n_y, false);
 
