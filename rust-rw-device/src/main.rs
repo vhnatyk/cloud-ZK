@@ -18,22 +18,22 @@ use pbr::ProgressBar;
 use std::str::FromStr;
 
 fn main(){
-    println!("Generating MSM input ...");
-    init();
-    let test_npow = std::env::var("TEST_NPOW").unwrap_or("10".to_string());
-    let n_points = i32::from_str(&test_npow).unwrap();
-    let size = 1 << n_points; // 2 ^ n_points
-    let tests: usize = 12;
-    let (points, scalars, msm_result) = input_generator_biguint(size);
-    let result = msm_calc_biguint(&points, &scalars, size);
-    result_check_biguint(result.0, msm_result);
-    sleep(Duration::from_secs(1));
-    let (points, scalars, msm_result) = input_generator_u32(size);
-    for _ in 0.. tests{
-    let result = msm_calc_u32(&points, &scalars, size);
-    result_check_u32(result.0, msm_result);
-    sleep(Duration::from_secs(1));
-    }
+    // println!("Generating MSM input ...");
+    // init();
+    // let test_npow = std::env::var("TEST_NPOW").unwrap_or("10".to_string());
+    // let n_points = i32::from_str(&test_npow).unwrap();
+    // let size = 1 << n_points; // 2 ^ n_points
+    // let tests: usize = 12;
+    // let (points, scalars, msm_result) = input_generator_biguint(size);
+    // let result = msm_calc_biguint(&points, &scalars, size);
+    // result_check_biguint(result.0, msm_result);
+    // sleep(Duration::from_secs(1));
+    // let (points, scalars, msm_result) = input_generator_u32(size);
+    // for _ in 0.. tests{
+    // let result = msm_calc_u32(&points, &scalars, size);
+    // result_check_u32(result.0, msm_result);
+    // sleep(Duration::from_secs(1));
+    // }
     // let (points, scalars, msm_result) = input_generator_u32(size);
     // write_points_to_hbm(&points,size);
     // let result = msm_calc_u32_only_scalars(&scalars, size);

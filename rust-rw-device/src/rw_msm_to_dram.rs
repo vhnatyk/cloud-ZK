@@ -120,22 +120,22 @@ pub fn msm_calc(points: &Vec<BigUint>, scalars: &Vec<BigUint>, size: usize) -> (
 }
 
 
-pub fn msm_calc_biguint(points: &Vec<BigUint>, scalars: &Vec<BigUint>, size: usize) -> ([BigUint; 3],Duration,u8) {
-    println!("Format Inputs...");
-    let points_bytes = get_formatted_unified_points_from_biguint(points);  
-    let scalars_bytes = get_formatted_unified_scalars_from_biguint(scalars);
-    let (z_chunk, y_chunk, x_chunk, duration, result_label) = msm_core(points_bytes, scalars_bytes,size);
-    return ([BigUint::from_bytes_le(&x_chunk),BigUint::from_bytes_le(&y_chunk),BigUint::from_bytes_le(&z_chunk)],duration,result_label)
-}
+// pub fn msm_calc_biguint(points: &Vec<BigUint>, scalars: &Vec<BigUint>, size: usize) -> ([BigUint; 3],Duration,u8) {
+//     println!("Format Inputs...");
+//     let points_bytes = get_formatted_unified_points_from_biguint(points);  
+//     let scalars_bytes = get_formatted_unified_scalars_from_biguint(scalars);
+//     let (z_chunk, y_chunk, x_chunk, duration, result_label) = msm_core(points_bytes, scalars_bytes,size);
+//     return ([BigUint::from_bytes_le(&x_chunk),BigUint::from_bytes_le(&y_chunk),BigUint::from_bytes_le(&z_chunk)],duration,result_label)
+// }
 
 
-pub fn msm_calc_u32(points: &Vec<u32>, scalars: &Vec<u32>, size: usize) -> ([Vec<u32> ;3],Duration,u8) {
-    println!("Format Inputs...");
-    let points_bytes = get_formatted_unified_points_from_u32(points);  
-    let scalars_bytes = get_formatted_unified_scalars_from_u32(scalars);
-    let (z_chunk, y_chunk, x_chunk, duration, result_label) = msm_core(points_bytes, scalars_bytes,size);
-    return ([as_u32_le(x_chunk),as_u32_le(y_chunk),as_u32_le(z_chunk)],duration,result_label)
-}
+// pub fn msm_calc_u32(points: &Vec<u32>, scalars: &Vec<u32>, size: usize) -> ([Vec<u32> ;3],Duration,u8) {
+//     println!("Format Inputs...");
+//     let points_bytes = get_formatted_unified_points_from_u32(points);  
+//     let scalars_bytes = get_formatted_unified_scalars_from_u32(scalars);
+//     let (z_chunk, y_chunk, x_chunk, duration, result_label) = msm_core(points_bytes, scalars_bytes,size);
+//     return ([as_u32_le(x_chunk),as_u32_le(y_chunk),as_u32_le(z_chunk)],duration,result_label)
+// }
 
 pub fn write_points_to_hbm(points: &Vec<u32>, size: usize) -> () {
     println!("Format Input...");
@@ -217,7 +217,7 @@ pub fn check_if_points_are_on_curv(point: &Vec<u8>) -> bool {
 /// * An array of 3 Vec<u8> (48 bytes each), representing the result in projective coordinates.
 /// * Duration of the computation. 
 /// * The label of the result that was read. 
-pub fn msm_core(points_bytes: Vec<u8>, scalars_bytes: Vec<u8>,size: usize) -> (Vec<u8>, Vec<u8>, Vec<u8>,Duration,u8) {
+pub fn msm_core(points_bytes: Vec<u8>, scalars_bytes: Vec<u8>,size: usize) -> (Vec<u8>,Duration,u8) {
     let nof_elements: usize = size;
     let chunks: usize = div_up(nof_elements,CHUNK_SIZE);
 
@@ -253,8 +253,14 @@ pub fn msm_core(points_bytes: Vec<u8>, scalars_bytes: Vec<u8>,size: usize) -> (V
     // println!("Pop result...");
     set_ingo_msm_pop_task(axi);
     //is_projective_point_curve(z_chunk.to_vec(), y_chunk.to_vec(), x_chunk.to_vec());
+    let mut result_vector = Vec::new();
+    result_vector.extend(z_chunk.to_vec());
+    result_vector.extend(y_chunk.to_vec());
+    result_vector.extend(x_chunk.to_vec());
 
-    (z_chunk.to_vec(), y_chunk.to_vec(), x_chunk.to_vec(),duration, result_label)
+
+    (result_vector,
+    duration, result_label)
 }
 
 fn is_projective_point_curve(z_chunk: Vec<u8>, y_chunk: Vec<u8>, x_chunk: Vec<u8>) {
