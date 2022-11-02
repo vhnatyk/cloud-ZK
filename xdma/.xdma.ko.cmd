@@ -1,0 +1,1 @@
+cmd_/home/ubuntu/monia/cloud-ZK-private/xdma/xdma.ko := ld -r  -m elf_x86_64  --build-id=sha1  -T scripts/module.lds -o /home/ubuntu/monia/cloud-ZK-private/xdma/xdma.ko /home/ubuntu/monia/cloud-ZK-private/xdma/xdma.o /home/ubuntu/monia/cloud-ZK-private/xdma/xdma.mod.o;  true

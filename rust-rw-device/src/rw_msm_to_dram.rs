@@ -222,28 +222,28 @@ pub fn msm_core(points_bytes: Vec<u8>, scalars_bytes: Vec<u8>,size: usize) -> (V
     let chunks: usize = div_up(nof_elements,CHUNK_SIZE);
 
     // println!("points: {:?}", n_scalars_bytes);
-    // println!("Open Device Channels...");
+    println!("Open Device Channels...");
     let axi = open_axi_channel();
     let h2c = open_dma_channel();
-    // println!("Setting DMA Source...");
+    println!("Setting DMA Source...");
     set_ingo_msm_coeffs_source(&axi,0);
     set_ingo_msm_bases_source(&axi,0);
-    // println!("Setting NOF Elements  = {}...", nof_elements);
+    println!("Setting NOF Elements  = {}...", nof_elements);
     set_ingo_msm_nof_elements(&axi, nof_elements);
-    // println!("Pushing Task Signal...");
+    println!("Pushing Task Signal...");
     set_ingo_msm_push_task(&axi);
-    // println!("Task label: {}", get_ingo_msm_task_label(&axi)[0]);
-    // println!("Writing Task...");
+    println!("Task label: {}", get_ingo_msm_task_label(&axi)[0]);
+    println!("Writing Task...");
     let start = Instant::now();
     write_msm_to_fifo(points_bytes, scalars_bytes, h2c,chunks);
-    // println!("Waiting for result...");
+    println!("Waiting for result...");
     wait_for_valid_result(&axi);
     let duration = start.elapsed();
-    // println!("Received result...");
-    // println!("Time elapsed is: {:?} for size: {}", duration, nof_elements);
+    println!("Received result...");
+    println!("Time elapsed is: {:?} for size: {}", duration, nof_elements);
     let result = read_result(&axi);
     let result_label = get_ingo_msm_result_label(&axi)[0]; 
-    // println!("Result label: {}", result_label);
+    println!("Result label: {}", result_label);
     let z_chunk = &result[0..BYTE_SIZE_POINT_COORD];
     let y_chunk = &result[BYTE_SIZE_POINT_COORD..2 * BYTE_SIZE_POINT_COORD];
     let x_chunk = &result[2 * BYTE_SIZE_POINT_COORD..3 * BYTE_SIZE_POINT_COORD];
@@ -311,7 +311,7 @@ fn get_ingo_msm_task_label(axi: &std::fs::File) -> [u8;4]{
 
 fn write_msm_to_fifo(points_bytes: Vec<u8>, scalars_bytes: Vec<u8>, h2c: std::fs::File, chunks: usize) {
     let payload_size_scalars: usize = CHUNK_SIZE * 32;
-    let payload_size_points: usize = CHUNK_SIZE * 32 * 3;
+    let payload_size_points: usize = CHUNK_SIZE * 32 * 2;
     for i in 0..chunks{
         let p_chunk: &[u8];
         let s_chunk: &[u8];

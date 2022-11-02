@@ -1,0 +1,2 @@
+/home/ubuntu/monia/cloud-ZK-private/xdma/libxdma.o /home/ubuntu/monia/cloud-ZK-private/xdma/xdma_cdev.o /home/ubuntu/monia/cloud-ZK-private/xdma/cdev_ctrl.o /home/ubuntu/monia/cloud-ZK-private/xdma/cdev_events.o /home/ubuntu/monia/cloud-ZK-private/xdma/cdev_sgdma.o /home/ubuntu/monia/cloud-ZK-private/xdma/cdev_xvc.o /home/ubuntu/monia/cloud-ZK-private/xdma/cdev_bypass.o /home/ubuntu/monia/cloud-ZK-private/xdma/xdma_mod.o
+

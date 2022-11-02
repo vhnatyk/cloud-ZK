@@ -1,0 +1,1 @@
+cmd_/home/ubuntu/monia/cloud-ZK-private/xdma/Module.symvers := sed 's/\.ko$$/\.o/' /home/ubuntu/monia/cloud-ZK-private/xdma/modules.order | scripts/mod/modpost -m -a  -o /home/ubuntu/monia/cloud-ZK-private/xdma/Module.symvers -e -i Module.symvers   -T -
