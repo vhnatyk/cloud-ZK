@@ -16,8 +16,8 @@ const INGO_MSM_CTRL_BASEADDR: u64 = 0x0010_0000;
 const DMA_SCALARS_BASEADDR: u64 = 0x0000_0010_0000_0000;
 const DMA_POINTS_BASEADDR: u64 = 0x0000_0011_0000_0000;
 const DFX_DECOUPLER_BASEADDR: u64 = 0x0005_0000; 
-const DMA: &str = "/dev/xdma0_h2c_0"; 
-const AXI: &str = "/dev/xdma0_user"; 
+const DMA: &str = "/dev/xdma4_h2c_0"; 
+const AXI: &str = "/dev/xdma4_user"; 
 
 fn div_up(a: usize, b: usize) -> usize {
     (a + (b - 1))/b
@@ -99,7 +99,7 @@ pub fn msm_calc(points: &Vec<BigUint>, scalars: &Vec<BigUint>, size: usize) -> (
     set_ingo_msm_push_task(&axi);
     println!("Writing Task...");
     let start = Instant::now();
-    write_msm_to_fifo(points_bytes, scalars_bytes, h2c,chunks);
+    write_msm_to_fifo(&points_bytes, &scalars_bytes, h2c,chunks);
     println!("Waiting for result...");
     wait_for_valid_result(&axi);
     let duration = start.elapsed();
@@ -217,7 +217,7 @@ pub fn check_if_points_are_on_curv(point: &Vec<u8>) -> bool {
 /// * An array of 3 Vec<u8> (48 bytes each), representing the result in projective coordinates.
 /// * Duration of the computation. 
 /// * The label of the result that was read. 
-pub fn msm_core(points_bytes: Vec<u8>, scalars_bytes: Vec<u8>,size: usize) -> (Vec<u8>,Duration,u8) {
+pub fn msm_core(points_bytes: &[u8], scalars_bytes: &[u8],size: usize) -> (Vec<u8>,Duration,u8) {
     let nof_elements: usize = size;
     let chunks: usize = div_up(nof_elements,CHUNK_SIZE);
 
@@ -235,7 +235,7 @@ pub fn msm_core(points_bytes: Vec<u8>, scalars_bytes: Vec<u8>,size: usize) -> (V
     println!("Task label: {}", get_ingo_msm_task_label(&axi)[0]);
     println!("Writing Task...");
     let start = Instant::now();
-    write_msm_to_fifo(points_bytes, scalars_bytes, h2c,chunks);
+    write_msm_to_fifo(&points_bytes, &scalars_bytes, h2c,chunks);
     println!("Waiting for result...");
     wait_for_valid_result(&axi);
     let duration = start.elapsed();
@@ -309,7 +309,7 @@ fn get_ingo_msm_task_label(axi: &std::fs::File) -> [u8;4]{
     return task_label
 }
 
-fn write_msm_to_fifo(points_bytes: Vec<u8>, scalars_bytes: Vec<u8>, h2c: std::fs::File, chunks: usize) {
+fn write_msm_to_fifo(points_bytes: &[u8], scalars_bytes: &[u8], h2c: std::fs::File, chunks: usize) {
     let payload_size_scalars: usize = CHUNK_SIZE * 32;
     let payload_size_points: usize = CHUNK_SIZE * 32 * 2;
     for i in 0..chunks{
