@@ -13,8 +13,8 @@ const INGO_MSM_CTRL_BASEADDR: u64 = 0x0010_0000;
 const DMA_SCALARS_BASEADDR: u64 = 0x0000_0010_0000_0000;
 const DMA_POINTS_BASEADDR: u64 = 0x0000_0011_0000_0000;
 const DFX_DECOUPLER_BASEADDR: u64 = 0x0005_0000; 
-const DMA: &str = "/dev/xdma0_h2c_0"; 
-const AXI: &str = "/dev/xdma0_user"; 
+const DMA: &str = "/dev/xdma4_h2c_0"; 
+const AXI: &str = "/dev/xdma4_user"; 
 
 fn div_up(a: usize, b: usize) -> usize {
     (a + (b - 1))/b
