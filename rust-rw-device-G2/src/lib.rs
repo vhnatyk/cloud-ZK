@@ -68,10 +68,10 @@ pub fn input_generator_biguint(nof_elements: usize) -> (Vec<BigUint>, Vec<BigUin
         // println!("y Re {}",  Fq::from_le_bytes_mod_order(&aff.y.c0.into_repr().to_bytes_le()));
         // println!("y Im {}",  Fq::from_le_bytes_mod_order(&aff.x.c0.into_repr().to_bytes_le()));
 
-        println!("aff.y Im bytes {:02X?}", &aff.y.c1.into_repr().to_bytes_le());
-        println!("aff.x Im bytes {:02X?}", &aff.x.c1.into_repr().to_bytes_le());
-        println!("aff.y Re bytes {:02X?}", &aff.y.c0.into_repr().to_bytes_le());
-        println!("aff.x Re bytes {:02X?}", &aff.x.c0.into_repr().to_bytes_le());
+        // println!("aff.y Im bytes {:02X?}", &aff.y.c1.into_repr().to_bytes_le());
+        // println!("aff.x Im bytes {:02X?}", &aff.x.c1.into_repr().to_bytes_le());
+        // println!("aff.y Re bytes {:02X?}", &aff.y.c0.into_repr().to_bytes_le());
+        // println!("aff.x Re bytes {:02X?}", &aff.x.c0.into_repr().to_bytes_le());
 
         points.push(BigUint::from_bytes_le(&aff.y.c1.into_repr().to_bytes_le()));
         points.push(BigUint::from_bytes_le(&aff.x.c1.into_repr().to_bytes_le()));
@@ -84,7 +84,7 @@ pub fn input_generator_biguint(nof_elements: usize) -> (Vec<BigUint>, Vec<BigUin
         // }
 
         let mut scalar = Fr::from_le_bytes_mod_order(&Fr::rand(&mut rng).into_repr().to_bytes_le()[0..31]);
-        println!("scalar bytes {:02X?}", &scalar.into_repr().to_bytes_le());
+        //println!("scalar bytes {:02X?}", &scalar.into_repr().to_bytes_le());
         scalars.push(BigUint::from_bytes_le(&scalar.into_repr().to_bytes_le()));
         
         if msm_result.is_zero(){
