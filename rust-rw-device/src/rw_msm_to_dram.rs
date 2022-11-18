@@ -6,6 +6,9 @@ use ark_ff::{Field, BigInteger256, Fp256, Zero};
 use num_bigint::BigUint;
 
 const CHUNK_SIZE: usize = 1024;
+#[cfg(feature = "bls12-377")]
+const BYTE_SIZE_POINT_COORD: usize = 48;
+#[cfg(feature = "bn254")]
 const BYTE_SIZE_POINT_COORD: usize = 32;
 
 const BYTE_SIZE_SCALAR: usize = 32;
@@ -13,8 +16,8 @@ const INGO_MSM_CTRL_BASEADDR: u64 = 0x0010_0000;
 const DMA_SCALARS_BASEADDR: u64 = 0x0000_0010_0000_0000;
 const DMA_POINTS_BASEADDR: u64 = 0x0000_0011_0000_0000;
 const DFX_DECOUPLER_BASEADDR: u64 = 0x0005_0000; 
-const DMA: &str = "/dev/xdma4_h2c_0"; 
-const AXI: &str = "/dev/xdma4_user"; 
+const DMA: &str = "/dev/xdma0_h2c_0"; 
+const AXI: &str = "/dev/xdma0_user"; 
 
 fn div_up(a: usize, b: usize) -> usize {
     (a + (b - 1))/b
@@ -105,9 +108,9 @@ pub fn msm_calc(points: &Vec<BigUint>, scalars: &Vec<BigUint>, size: usize) -> (
     println!("Received result...");
     println!("Time elapsed is: {:?} for size: {}", duration, nof_elements);
     let result = read_result(&axi);
-    let z_chunk = &result[0..48];
-    let y_chunk = &result[48..96];
-    let x_chunk = &result[96..144];
+    let z_chunk = &result[0..BYTE_SIZE_POINT_COORD];
+    let y_chunk = &result[BYTE_SIZE_POINT_COORD..BYTE_SIZE_POINT_COORD*2];
+    let x_chunk = &result[BYTE_SIZE_POINT_COORD*2..];
     println!("X bytes {:02X?}", x_chunk);
     println!("Y bytes {:02X?}", y_chunk);
     println!("Z bytes {:02X?}", z_chunk);

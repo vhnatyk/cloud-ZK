@@ -28,7 +28,7 @@ pub fn msm_cloud<G: AffineCurve>(
     if npoints != scalars.len() {
         panic!("length mismatch")
     }
-    let ret  = rw_msm_to_dram::msm_calc_biguint(&points, &scalars, scalars.len());
+    let ret  = rw_msm_to_dram::msm_calc(&points, &scalars, scalars.len());
     let result:([BigUint; 3], u8) = (ret.0, ret.2);
     return result;
 }

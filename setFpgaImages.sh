@@ -1,6 +1,6 @@
 # clear both fpgas of old images
-sudo fpga-clear-local-image -S 0
-sudo fpga-clear-local-image -S 1
+# sudo fpga-clear-local-image -S 0
+# sudo fpga-clear-local-image -S 1
 
 <<'###BLOCK-COMMENT'
 New G1 250MHz build where padding is not needed. Input order is still [y, x] where x and y is 256b
@@ -28,18 +28,25 @@ New G1 250MHz build where padding is not needed. Input order is still [y, x] whe
 sudo fpga-load-local-image -S 0 -I agfi-01e758858844860d9 -H
 
 <<'###BLOCK-COMMENT'
-New G2 125MHz build with bug fix.
+New BN254 G2 187MHz
 {
     "FpgaImages": [
         {
-            "FpgaImageId": "afi-065871d621fe1c7cd",
-            "FpgaImageGlobalId": "agfi-0b9615a9adbd51774",
-            "Name": "rapidsnark-g2-f125",
-            "State": {
-                "Code": "pending"
+            "FpgaImageId": "afi-035b98142a8f20acf",
+            "FpgaImageGlobalId": "agfi-05c523a947b48ff0a",
+            "Name": "rapidsnark-g2-f187",
+            "ShellVersion": "0x04261818",
+            "PciId": {
+                "DeviceId": "0xf001",
+                "VendorId": "0x1d0f",
+                "SubsystemId": "0x1d51",
+                "SubsystemVendorId": "0xfedd"
             },
-            "CreateTime": "2022-11-01T02:10:25.000Z",
-            "UpdateTime": "2022-11-01T02:10:25.000Z",
+            "State": {
+                "Code": "available"
+            },
+            "CreateTime": "2022-11-01T12:29:03.000Z",
+            "UpdateTime": "2022-11-01T14:09:15.000Z",
             "OwnerId": "983370650745",
             "Tags": [],
             "Public": false,
@@ -49,4 +56,4 @@ New G2 125MHz build with bug fix.
 }
 ###BLOCK-COMMENT
 # fpga @ slot 1 should be used for G2
-sudo fpga-load-local-image -S 1 -I agfi-0b9615a9adbd51774 -H
+sudo fpga-load-local-image -S 1 -I agfi-05c523a947b48ff0a -a 187
