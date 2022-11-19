@@ -398,7 +398,10 @@ fn get_formatted_unified_scalars_from_biguint(scalars: &Vec<BigUint>) -> Vec<u8>
     scalars_bytes
 }
 
-fn get_formatted_unified_points_from_biguint(points: &Vec<BigUint>) -> Vec<u8> {
+fn get_formatted_unified_points_from_biguint(points: &Vec<BigUint>) -> Vec<u8> { 
+    //TODO: BigUint to_bytes_le skips insignificant zeros, this method and similar only 
+    //      pads with zeroes to max length of point coord in bytes e.g. BYTE_SIZE_POINT_COORD
+    //      transmute_copy can du the same much faster. so this conversion won't kill speedup
     let mut points_bytes: Vec<u8> = Vec::new();
     for i in 0..points.len(){
         let mut bytes_array = points[i].to_bytes_le();
