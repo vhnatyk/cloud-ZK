@@ -7,7 +7,7 @@ use crate::rw_msm_to_dram::*;
 
 mod rw_msm_to_dram;
 
-fn main(){
+fn main(){ //TODO: move this to lib.rs test
     println!("Generating MSM input ...");
     // init();
     

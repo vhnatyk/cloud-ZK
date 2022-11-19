@@ -22,7 +22,7 @@ fn main(){
     let n_points = i32::from_str(&test_npow).unwrap();
     let size = 1 << n_points; // 2 ^ n_points
     let (points, scalars, msm_result) = input_generator_biguint(size);
-    let result = msm_calc(&points, &scalars, size);
+    let result = msm_calc_biguint(&points, &scalars, size);
     result_check_biguint(result.0, msm_result);
     sleep(Duration::from_secs(1));
     // let (points, scalars, msm_result) = input_generator_u32(size);

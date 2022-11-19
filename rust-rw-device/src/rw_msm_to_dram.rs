@@ -68,6 +68,44 @@ pub fn get_msm_label() -> u8{
     return task_label; 
 }
 
+pub fn msm_calc(points: &Vec<BigUint>, scalars: &Vec<BigUint>, size: usize) -> (Vec<Vec<u8>>,Duration, u8) {
+    let chunks: usize = div_up(size,CHUNK_SIZE);
+    println!("Open Device Channels...");
+    let axi = open_axi_channel();
+    let h2c = open_dma_channel();
+    println!("Task label: {}", get_ingo_msm_task_label(&axi)[0]);
+    println!("Format Inputs...");
+    let points_bytes = get_formatted_unified_points_from_biguint(points);  
+    let scalars_bytes = get_formatted_unified_scalars_from_biguint(scalars);
+    println!("Setting DMA Source...");
+    set_ingo_msm_coeffs_source(&axi,0);
+    set_ingo_msm_bases_source(&axi,0);
+    println!("Setting NOF Elements  = {}...", size);
+    set_ingo_msm_nof_elements(&axi, size);
+    println!("Pushing Task Signal...");
+    set_ingo_msm_push_task(&axi);
+    println!("Writing Task...");
+    let start = Instant::now();
+    write_msm_to_fifo(&points_bytes, &scalars_bytes, h2c,chunks);
+    println!("Waiting for result...");
+    wait_for_valid_result(&axi);
+    let duration = start.elapsed();
+    println!("Result label: {}", get_ingo_msm_result_label(&axi)[0]);
+    let result_label = get_ingo_msm_result_label(&axi)[0]; 
+    println!("Received result...");
+    println!("Time elapsed is: {:?} for size: {}", duration, size);
+    let result = read_result(&axi);
+    let z_chunk = &result[0..BYTE_SIZE_POINT_COORD];
+    let y_chunk = &result[BYTE_SIZE_POINT_COORD..BYTE_SIZE_POINT_COORD*2];
+    let x_chunk = &result[BYTE_SIZE_POINT_COORD*2..];
+    println!("X bytes {:02X?}", x_chunk);
+    println!("Y bytes {:02X?}", y_chunk);
+    println!("Z bytes {:02X?}", z_chunk);
+    println!("Pop result...");
+    set_ingo_msm_pop_task(axi);
+    (vec![x_chunk.to_vec(),y_chunk.to_vec(),z_chunk.to_vec()],duration,result_label)
+}
+
 /// Returns MSM result of elements in bls12_377 in projective form
 ///
 /// # Arguments
@@ -80,7 +118,7 @@ pub fn get_msm_label() -> u8{
 /// * An array of 3 BigUint (48 bytes each), representing the result in projective coordinates.
 /// * Duration of the computation. 
 /// * The label of the result that was read. 
-pub fn msm_calc(points: &Vec<BigUint>, scalars: &Vec<BigUint>, size: usize) -> ([BigUint; 3],Duration, u8) {
+pub fn msm_calc_biguint(points: &Vec<BigUint>, scalars: &Vec<BigUint>, size: usize) -> ([BigUint; 3],Duration, u8) {
     let nof_elements: usize = size;
     let chunks: usize = div_up(nof_elements,CHUNK_SIZE);
     println!("Open Device Channels...");
@@ -118,8 +156,6 @@ pub fn msm_calc(points: &Vec<BigUint>, scalars: &Vec<BigUint>, size: usize) -> (
     set_ingo_msm_pop_task(axi);
     return ([BigUint::from_bytes_le(x_chunk),BigUint::from_bytes_le(y_chunk),BigUint::from_bytes_le(z_chunk)],duration,result_label)
 }
-
-
 
 pub fn write_points_to_hbm(points: &Vec<u32>, size: usize) -> () {
     println!("Format Input...");

@@ -53,6 +53,22 @@ pub fn msm_calc_biguint(points: &Vec<BigUint>, scalars: &Vec<BigUint>, size: usi
         duration,result_label)
 }
 
+pub fn msm_calc(points: &Vec<BigUint>, scalars: &Vec<BigUint>, size: usize) -> (Vec<Vec<u8>>,Duration,u8){ //TODO: 
+    println!("Format Inputs...");
+    let points_bytes = get_formatted_unified_points_from_biguint(points);  
+    let scalars_bytes = get_formatted_unified_scalars_from_biguint(scalars);
+    let (result_vector, duration, result_label) = msm_core(&points_bytes, &scalars_bytes, size);
+    
+    return (
+        vec![result_vector[0..32].to_vec()
+        ,result_vector[32..64].to_vec(),
+        result_vector[64..96].to_vec(),
+        result_vector[96..128].to_vec()
+        ,result_vector[128..160].to_vec(),
+        result_vector[160..192].to_vec()],
+        duration,result_label)
+}
+
 /// Returns MSM result of elements in bls12_377 in projective form
 ///
 /// # Arguments

@@ -19,6 +19,6 @@ pbr = "1.0.4"
 sodiumoxide = "0.2.7"
 
 [features]
-bls12_377 = [ "ark-bls12-377" ]
+bls12-377 = [ "ark-bls12-377" ]
 bn254 = [ "ark-bn254" ]
 default = [ "bn254" ]
