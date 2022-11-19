@@ -1,9 +1,9 @@
 use ark_ec::{AffineCurve, ProjectiveCurve};
-use ark_ff::{BigInteger256, Field, PrimeField, Zero};
+use ark_ff::{BigInteger256, PrimeField, Zero};
 use num_bigint::BigUint;
-use rust_rw_device::curve::{Fq, Fq2, G1Affine, G2Affine, G1Projective, G2Projective};
+use rust_rw_device::curve::{G1Affine, G1Projective, G2Affine, G2Projective};
 use std::{
-    ops::{Add, Mul},
+    ops::Add,
     str::FromStr,
 };
 
@@ -50,18 +50,10 @@ pub fn msm_correctness_g1() {
         .map(|scalar| scalar.into_repr().into())
         .collect::<Vec<BigUint>>();
 
-    let msm_cloud_vec = ingo_x::msm_cloud::<G1Affine>(&points_as_big_int, &scalar_as_big_int);
+    let msm_cloud_res =
+        ingo_x::msm_cloud_generic::<G1Affine>(&points_as_big_int, &scalar_as_big_int);
 
-    let result = msm_cloud_vec.0;
-
-    let proj_x_field = Fq::from_random_bytes(&result[0]).unwrap();
-    let proj_y_field = Fq::from_random_bytes(&result[1]).unwrap();
-    let proj_z_field = Fq::from_random_bytes(&result[2]).unwrap();
-    let aff_x = proj_x_field.mul(proj_z_field.inverse().unwrap());
-    let aff_y = proj_y_field.mul(proj_z_field.inverse().unwrap());
-    let cloud_aff_point = G1Affine::new(aff_x, aff_y, false);
-
-    assert_eq!(cloud_aff_point, msm_ark_projective); //raw vec comparison isn't always meaningful
+    assert_eq!(msm_cloud_res.0, msm_ark_projective); //raw vec comparison isn't always meaningful
 }
 
 #[test]
@@ -112,23 +104,8 @@ pub fn msm_correctness_g2() {
         .map(|scalar| scalar.into_repr().into())
         .collect::<Vec<BigUint>>();
 
-    let msm_cloud_vec = ingo_x::msm_cloud::<G2Affine>(&points_as_big_int, &scalar_as_big_int);
+    let msm_cloud_res =
+        ingo_x::msm_cloud_generic::<G2Affine>(&points_as_big_int, &scalar_as_big_int);
 
-    let result = msm_cloud_vec.0;
-
-    let proj_x_field_c0 = Fq::from_le_bytes_mod_order(&result[5]);
-    let proj_x_field_c1 = Fq::from_le_bytes_mod_order(&result[2]);
-    let proj_x_field = Fq2::new(proj_x_field_c0,proj_x_field_c1);
-    let proj_y_field_c0 = Fq::from_le_bytes_mod_order(&result[4]);
-    let proj_y_field_c1 = Fq::from_le_bytes_mod_order(&result[1]);
-    let proj_y_field = Fq2::new(proj_y_field_c0,proj_y_field_c1);
-    let proj_z_field_c0 = Fq::from_le_bytes_mod_order(&result[3]);
-    let proj_z_field_c1 = Fq::from_le_bytes_mod_order(&result[0]);
-    let proj_z_field = Fq2::new(proj_z_field_c0,proj_z_field_c1);
-
-    let aff_x = proj_x_field.mul(proj_z_field.inverse().unwrap());
-    let aff_y = proj_y_field.mul(proj_z_field.inverse().unwrap());
-    let cloud_aff_point = G2Affine::new(aff_x,aff_y,false);
-
-    assert_eq!(cloud_aff_point, msm_ark_projective); //raw vec comparison isn't always meaningful
+    assert_eq!(msm_cloud_res.0, msm_ark_projective); //raw vec comparison isn't always meaningful
 }

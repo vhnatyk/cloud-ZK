@@ -60,7 +60,7 @@ pub fn msm_calc(points: &Vec<BigUint>, scalars: &Vec<BigUint>, size: usize) -> (
     let (result_vector, duration, result_label) = msm_core(&points_bytes, &scalars_bytes, size);
     
     return (
-        vec![result_vector[0..32].to_vec()
+        vec![result_vector[0..32].to_vec() //TODO: can be rearranged here to support Fq2::from_random_bytes and avoid concat()
         ,result_vector[32..64].to_vec(),
         result_vector[64..96].to_vec(),
         result_vector[96..128].to_vec()
