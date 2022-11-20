@@ -15,4 +15,5 @@ cd ../rust-bench;
 #bn254
 export TEST_NPOW=12; cargo test --release
 export TEST_NPOW=3; cargo test --release
+export TEST_NPOW=0; cargo test --release
  

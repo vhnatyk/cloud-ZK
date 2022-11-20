@@ -1,5 +1,5 @@
 use ark_ec::{AffineCurve, ProjectiveCurve};
-use ark_ff::{BigInteger256, PrimeField, Zero};
+use ark_ff::{BigInteger256, PrimeField, Zero, BigInteger};
 use num_bigint::BigUint;
 use rust_rw_device::curve::{G1Affine, G1Projective, G2Affine, G2Projective};
 use std::{
@@ -39,19 +39,21 @@ pub fn msm_correctness_g1() {
     assert_eq!(msm_result_cpu_ingo_ref, msm_result_cpu_ref1);
     assert_eq!(msm_result_cpu_ingo_ref, msm_ark_projective);
 
-    let points_as_big_int = points
+    let points_bytes = points
         .into_iter()
-        .map(|point| [point.y.into_repr().into(), point.x.into_repr().into()])
+        .map(|point| [point.y.into_repr().to_bytes_le(), point.x.into_repr().to_bytes_le()])
         .flatten()
-        .collect::<Vec<BigUint>>();
+        .flatten()
+        .collect::<Vec<_>>();
 
-    let scalar_as_big_int = scalars
+    let scalar_bytes = scalars
         .into_iter()
-        .map(|scalar| scalar.into_repr().into())
-        .collect::<Vec<BigUint>>();
+        .map(|scalar| scalar.into_repr().to_bytes_le())
+        .flatten()
+        .collect::<Vec<u8>>();
 
     let msm_cloud_res =
-        ingo_x::msm_cloud_generic::<G1Affine>(&points_as_big_int, &scalar_as_big_int);
+        ingo_x::msm_cloud_generic::<G1Affine>(&points_bytes, &scalar_bytes);
 
     assert_eq!(msm_cloud_res.0, msm_ark_projective); //raw vec comparison isn't always meaningful
 }
@@ -86,26 +88,28 @@ pub fn msm_correctness_g2() {
     assert_eq!(msm_result_cpu_ingo_ref, msm_result_cpu_ref1);
     assert_eq!(msm_result_cpu_ingo_ref, msm_ark_projective);
 
-    let points_as_big_int = points
+    let points_bytes = points
         .into_iter()
         .map(|point| {
             [
-                point.y.c1.into_repr().into(),
-                point.x.c1.into_repr().into(),
-                point.y.c0.into_repr().into(),
-                point.x.c0.into_repr().into(),
+                point.y.c1.into_repr().to_bytes_le(),
+                point.x.c1.into_repr().to_bytes_le(),
+                point.y.c0.into_repr().to_bytes_le(),
+                point.x.c0.into_repr().to_bytes_le(),
             ]
         })
         .flatten()
-        .collect::<Vec<BigUint>>();
+        .flatten()
+        .collect::<Vec<u8>>();
 
-    let scalar_as_big_int = scalars
+    let scalar_bytes = scalars
         .into_iter()
-        .map(|scalar| scalar.into_repr().into())
-        .collect::<Vec<BigUint>>();
+        .map(|scalar| scalar.into_repr().to_bytes_le())
+        .flatten()
+        .collect::<Vec<u8>>();
 
     let msm_cloud_res =
-        ingo_x::msm_cloud_generic::<G2Affine>(&points_as_big_int, &scalar_as_big_int);
+        ingo_x::msm_cloud_generic::<G2Affine>(&points_bytes, &scalar_bytes);
 
     assert_eq!(msm_cloud_res.0, msm_ark_projective); //raw vec comparison isn't always meaningful
 }
