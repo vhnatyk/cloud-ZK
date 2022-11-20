@@ -53,11 +53,8 @@ pub fn msm_calc_biguint(points: &Vec<BigUint>, scalars: &Vec<BigUint>, size: usi
         duration,result_label)
 }
 
-pub fn msm_calc(points: &Vec<BigUint>, scalars: &Vec<BigUint>, size: usize) -> (Vec<Vec<u8>>,Duration,u8){ //TODO: 
-    println!("Format Inputs...");
-    let points_bytes = get_formatted_unified_points_from_biguint(points);  
-    let scalars_bytes = get_formatted_unified_scalars_from_biguint(scalars);
-    let (result_vector, duration, result_label) = msm_core(&points_bytes, &scalars_bytes, size);
+pub fn msm_calc(points: &[u8], scalars: &[u8], size: usize) -> (Vec<Vec<u8>>,Duration,u8){ //TODO: 
+    let (result_vector, duration, result_label) = msm_core(&points, &scalars, size);
     
     return (
         vec![result_vector[0..32].to_vec() //TODO: can be rearranged here to support Fq2::from_random_bytes and avoid concat()

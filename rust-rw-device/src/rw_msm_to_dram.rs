@@ -2,6 +2,7 @@ use std::{fs::OpenOptions, os::unix::prelude::{OpenOptionsExt, FileExt}, time::D
 use std::time::{Instant};
 
 use crate::curve::{G1Affine as GAffine, Fq, Fr};
+use ark_ec::AffineCurve;
 use ark_ff::{Field, BigInteger256, Fp256, Zero};
 use num_bigint::BigUint;
 
@@ -68,15 +69,12 @@ pub fn get_msm_label() -> u8{
     return task_label; 
 }
 
-pub fn msm_calc(points: &Vec<BigUint>, scalars: &Vec<BigUint>, size: usize) -> (Vec<Vec<u8>>,Duration, u8) {
+pub fn msm_calc(point_bytes: &[u8], scalar_bytes: &[u8], size: usize) -> (Vec<Vec<u8>>,Duration, u8) {
     let chunks: usize = div_up(size,CHUNK_SIZE);
     println!("Open Device Channels...");
     let axi = open_axi_channel();
     let h2c = open_dma_channel();
     println!("Task label: {}", get_ingo_msm_task_label(&axi)[0]);
-    println!("Format Inputs...");
-    let points_bytes = get_formatted_unified_points_from_biguint(points);  
-    let scalars_bytes = get_formatted_unified_scalars_from_biguint(scalars);
     println!("Setting DMA Source...");
     set_ingo_msm_coeffs_source(&axi,0);
     set_ingo_msm_bases_source(&axi,0);
@@ -86,7 +84,7 @@ pub fn msm_calc(points: &Vec<BigUint>, scalars: &Vec<BigUint>, size: usize) -> (
     set_ingo_msm_push_task(&axi);
     println!("Writing Task...");
     let start = Instant::now();
-    write_msm_to_fifo(&points_bytes, &scalars_bytes, h2c,chunks);
+    write_msm_to_fifo(&point_bytes, &scalar_bytes, h2c,chunks);
     println!("Waiting for result...");
     wait_for_valid_result(&axi);
     let duration = start.elapsed();
@@ -236,10 +234,9 @@ pub fn check_if_points_are_on_curv(point: &Vec<u8>) -> bool {
 /// * An array of 3 Vec<u8> (48 bytes each), representing the result in projective coordinates.
 /// * Duration of the computation. 
 /// * The label of the result that was read. 
-pub fn msm_core(points_bytes: &[u8], scalars_bytes: &[u8],size: usize) -> (Vec<u8>,Duration,u8) {
+pub fn msm_core(point_bytes: &[u8], scalar_bytes: &[u8],size: usize) -> (Vec<u8>,Duration,u8) {
     let nof_elements: usize = size;
     let chunks: usize = div_up(nof_elements,CHUNK_SIZE);
-
     // println!("points: {:?}", n_scalars_bytes);
     println!("Open Device Channels...");
     let axi = open_axi_channel();
@@ -254,7 +251,7 @@ pub fn msm_core(points_bytes: &[u8], scalars_bytes: &[u8],size: usize) -> (Vec<u
     println!("Task label: {}", get_ingo_msm_task_label(&axi)[0]);
     println!("Writing Task...");
     let start = Instant::now();
-    write_msm_to_fifo(&points_bytes, &scalars_bytes, h2c,chunks);
+    write_msm_to_fifo(&point_bytes, &scalar_bytes, h2c,chunks);
     println!("Waiting for result...");
     wait_for_valid_result(&axi);
     let duration = start.elapsed();
