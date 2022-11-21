@@ -1,16 +1,16 @@
-use std::any::TypeId;
 use std::mem::size_of;
+use std::{any::TypeId, time::Instant};
 
+pub use ::rust_rw_device::curve;
 use ark_ec::{msm::VariableBaseMSM, AffineCurve};
 use ark_ff::{Field, PrimeField, ToBytes};
 use num_bigint::BigUint;
-pub use ::rust_rw_device::curve;
 use rust_rw_device::rw_msm_to_dram;
 use std::ops::Mul;
 
 use curve::{Fq, Fq2, G1Affine, G2Affine};
-use rw_msm_to_dram as device_g1; //TODO: unify to one crate
-use rust_rw_device_G2::rw_msm_to_dram as device_g2; //TODO: unify to one crate
+use rust_rw_device_G2::rw_msm_to_dram as device_g2;
+use rw_msm_to_dram as device_g1; //TODO: unify to one crate //TODO: unify to one crate
 
 pub mod util;
 
@@ -33,12 +33,13 @@ pub fn msm_cloud_generic<G: AffineCurve>(
     points: &[u8],
     scalars: &[u8],
 ) -> (G::Projective, u8) {
+    let start = Instant::now();
     let mut buff: Vec<u8>;
     let scalar_size = size_of::<G::ScalarField>();
     let size = scalars.len() / scalar_size;
 
     let label = {
-        if TypeId::of::<G>() == TypeId::of::<G1Affine>() { 
+        if TypeId::of::<G>() == TypeId::of::<G1Affine>() {
             let (result, _, label) = device_g1::msm_calc(&points, &scalars, size);
             //TODO: this conversion should be part of Ingo API
             let proj_x_field = Fq::from_random_bytes(&result[0]).unwrap();
@@ -50,7 +51,7 @@ pub fn msm_cloud_generic<G: AffineCurve>(
             aff_x.write(&mut buff).unwrap();
             aff_y.write(&mut buff).unwrap();
             label
-        } else if TypeId::of::<G>() == TypeId::of::<G2Affine>() {         
+        } else if TypeId::of::<G>() == TypeId::of::<G2Affine>() {
             let (result, _, label) = device_g2::msm_calc(&points, &scalars, size);
             let proj_x_field =
                 Fq2::from_random_bytes(&[result[5].to_vec(), result[2].to_vec()].concat()).unwrap();
@@ -70,13 +71,12 @@ pub fn msm_cloud_generic<G: AffineCurve>(
         }
     };
     buff.push(0);
-    (G::read(buff.as_slice()).unwrap().into_projective(), label)
+    let r = (G::read(buff.as_slice()).unwrap().into_projective(), label);
+    println!("Time total elapsed is: {:?} for size: {}", start.elapsed(), size);
+    return r;
 }
 
-pub fn msm_cloud<G: AffineCurve>(
-    points: &[u8],
-    scalars: &[u8],
-) -> (Vec<Vec<u8>>, u8) {
+pub fn msm_cloud<G: AffineCurve>(points: &[u8], scalars: &[u8]) -> (Vec<Vec<u8>>, u8) {
     //TODO: no biguint API, just Arkworks or raw byte array
     let ret = {
         if TypeId::of::<G>() == TypeId::of::<G1Affine>() {
